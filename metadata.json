@@ -1,0 +1,6 @@
+{
+  "name": "ScholarSetu",
+  "description": "Centralized cross-state scholarship verification and student portal for Indian institutions and state government departments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
