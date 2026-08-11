@@ -35,6 +35,9 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestInit
 
 // Dedicated API Methods
 export const api = {
+  // Health & DB
+  getDbHealth: () => apiRequest('/health/db'),
+
   // Auth
   login: (credentials: any) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   register: (userData: any) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),

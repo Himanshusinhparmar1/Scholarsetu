@@ -1,5 +1,18 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import {
+  UserModel,
+  ProfileModel,
+  InstitutionModel,
+  ScholarshipModel,
+  ApplicationModel,
+  DocumentModel,
+  PaymentModel,
+  VerificationModel,
+  NotificationModel,
+  AuditLogModel,
+  SettingModel,
+} from './models.js';
 
 // In-Memory Database store with seed data & helper methods
 // Supports both MongoDB via Mongoose and Fallback In-Memory Engine for instant zero-config startup!
@@ -631,19 +644,190 @@ export async function seedInitialData() {
   console.log('✅ In-memory database seeded successfully with realistic Indian college & scholarship data!');
 }
 
+let isMongoConnected = false;
+
+export function getDBStatus() {
+  const readyState = mongoose.connection.readyState;
+  const stateNames = ['Disconnected', 'Connected', 'Connecting', 'Disconnecting'];
+  const host = mongoose.connection.host || 'N/A';
+  const name = mongoose.connection.name || 'scholarsetu';
+
+  return {
+    isMongoConnected: readyState === 1,
+    readyState,
+    readyStateName: stateNames[readyState] || 'Disconnected',
+    host,
+    dbName: name,
+    mongoUriConfigured: !!(process.env.MONGODB_URI || process.env.MONGO_URI),
+  };
+}
+
+export async function syncMongoSeed() {
+  if (mongoose.connection.readyState !== 1) return;
+  try {
+    const userCount = await UserModel.countDocuments();
+    if (userCount === 0 && db.users.length > 0) {
+      console.log('🌱 Populating MongoDB collections with initial master seed data...');
+      await UserModel.insertMany(db.users);
+      await ProfileModel.insertMany(db.profiles);
+      await InstitutionModel.insertMany(db.institutions);
+      await ScholarshipModel.insertMany(db.scholarships);
+      await ApplicationModel.insertMany(db.applications);
+      await DocumentModel.insertMany(db.documents);
+      await PaymentModel.insertMany(db.payments);
+      await VerificationModel.insertMany(db.verifications);
+      await NotificationModel.insertMany(db.notifications);
+      await AuditLogModel.insertMany(db.auditLogs);
+      console.log('✅ MongoDB collections populated successfully with seed data!');
+    }
+  } catch (err: any) {
+    console.error('⚠️ MongoDB seed synchronization note:', err.message);
+  }
+}
+
 // Function to attempt Mongo connection
+export async function saveUser(user: any) {
+  const existingIdx = db.users.findIndex((u) => u.id === user.id);
+  if (existingIdx >= 0) {
+    db.users[existingIdx] = user;
+  } else {
+    db.users.push(user);
+  }
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await UserModel.findOneAndUpdate({ id: user.id } as any, user, { upsert: true, new: true });
+    } catch (err: any) {
+      console.error('Mongo saveUser error:', err.message);
+    }
+  }
+}
+
+export async function saveProfile(profile: any) {
+  const existingIdx = db.profiles.findIndex((p) => p.userId === profile.userId);
+  if (existingIdx >= 0) {
+    db.profiles[existingIdx] = { ...db.profiles[existingIdx], ...profile };
+  } else {
+    db.profiles.push(profile);
+  }
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await ProfileModel.findOneAndUpdate({ userId: profile.userId } as any, profile, { upsert: true, new: true });
+    } catch (err: any) {
+      console.error('Mongo saveProfile error:', err.message);
+    }
+  }
+}
+
+export async function saveApplication(app: any) {
+  const existingIdx = db.applications.findIndex((a) => a.id === app.id);
+  if (existingIdx >= 0) {
+    db.applications[existingIdx] = { ...db.applications[existingIdx], ...app };
+  } else {
+    db.applications.push(app);
+  }
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await ApplicationModel.findOneAndUpdate({ id: app.id } as any, app, { upsert: true, new: true });
+    } catch (err: any) {
+      console.error('Mongo saveApplication error:', err.message);
+    }
+  }
+}
+
+export async function saveScholarship(sch: any) {
+  const existingIdx = db.scholarships.findIndex((s) => s.id === sch.id);
+  if (existingIdx >= 0) {
+    db.scholarships[existingIdx] = { ...db.scholarships[existingIdx], ...sch };
+  } else {
+    db.scholarships.push(sch);
+  }
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await ScholarshipModel.findOneAndUpdate({ id: sch.id } as any, sch, { upsert: true, new: true });
+    } catch (err: any) {
+      console.error('Mongo saveScholarship error:', err.message);
+    }
+  }
+}
+
+export async function saveInstitution(inst: any) {
+  const existingIdx = db.institutions.findIndex((i) => i.id === inst.id);
+  if (existingIdx >= 0) {
+    db.institutions[existingIdx] = { ...db.institutions[existingIdx], ...inst };
+  } else {
+    db.institutions.push(inst);
+  }
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await InstitutionModel.findOneAndUpdate({ id: inst.id } as any, inst, { upsert: true, new: true });
+    } catch (err: any) {
+      console.error('Mongo saveInstitution error:', err.message);
+    }
+  }
+}
+
+export async function savePayment(payment: any) {
+  db.payments.push(payment);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await PaymentModel.create(payment);
+    } catch (err: any) {
+      console.error('Mongo savePayment error:', err.message);
+    }
+  }
+}
+
+export async function saveVerification(verification: any) {
+  db.verifications.push(verification);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await VerificationModel.create(verification);
+    } catch (err: any) {
+      console.error('Mongo saveVerification error:', err.message);
+    }
+  }
+}
+
+export async function saveNotification(notif: any) {
+  db.notifications.unshift(notif);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await NotificationModel.create(notif);
+    } catch (err: any) {
+      console.error('Mongo saveNotification error:', err.message);
+    }
+  }
+}
+
+export async function saveAuditLog(log: any) {
+  db.auditLogs.unshift(log);
+  if (mongoose.connection.readyState === 1) {
+    try {
+      await AuditLogModel.create(log);
+    } catch (err: any) {
+      console.error('Mongo saveAuditLog error:', err.message);
+    }
+  }
+}
+
 export async function initDB() {
   await seedInitialData();
 
-  const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/scholarsetu';
+  const mongoUri =
+    process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/scholarsetu';
+
   try {
     mongoose.set('strictQuery', false);
-    // Attempt with 3s timeout so app never blocks
     await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 3000,
     });
-    console.log('✅ MongoDB connected via Mongoose!');
+    isMongoConnected = true;
+    console.log(`✅ MongoDB connected successfully via Mongoose to [${mongoose.connection.host}/${mongoose.connection.name}]!`);
+    await syncMongoSeed();
   } catch (err: any) {
-    console.log('⚠️ MongoDB connection not available. Operating seamlessly with in-memory database engine!');
+    isMongoConnected = false;
+    console.log(
+      '⚠️ MongoDB connection note: Local/Remote MongoDB instance not detected or server selection timed out. Operating seamlessly with in-memory database engine!'
+    );
   }
 }

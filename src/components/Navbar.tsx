@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { NotificationDrawer } from './NotificationDrawer';
+import { MongoStatusBadge } from './MongoStatusBadge';
 import {
   GraduationCap,
   Building2,
@@ -47,9 +48,9 @@ export const Navbar: React.FC = () => {
           <span>National Inter-State Student Scholarship Verification Portal • Government of India</span>
         </div>
         <div className="flex items-center gap-4 text-indigo-200">
-          <span>Student Application Processing Fee: <strong>₹150</strong> (Zero Fee for Colleges & State Govt)</span>
+          <MongoStatusBadge />
           <span className="hidden sm:inline">•</span>
-          <span className="hidden sm:inline">28 States & 8 UTs Verification Network</span>
+          <span>Student Fee: <strong>₹150</strong> (Zero Fee for Colleges & State Govt)</span>
         </div>
       </div>
 

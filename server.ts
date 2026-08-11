@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import { createServer as createViteServer } from 'vite';
-import { initDB } from './src/server/db.js';
+import { initDB, getDBStatus } from './src/server/db.js';
 
 import authRoutes from './src/server/routes/authRoutes.js';
 import studentRoutes from './src/server/routes/studentRoutes.js';
@@ -34,6 +34,15 @@ async function startServer() {
       service: 'ScholarSetu Centralized Verification API',
       version: '1.0.0-SIH-MVP',
       timestamp: new Date().toISOString(),
+    });
+  });
+
+  app.get('/api/health/db', (req, res) => {
+    const status = getDBStatus();
+    res.json({
+      success: true,
+      database: 'MongoDB (Mongoose ORM)',
+      ...status,
     });
   });
 
